@@ -193,7 +193,7 @@ def main():
         print(f"  {designer:40s} {count:5d} images  [{status}]")
     print(f"\n  GRAND TOTAL: {grand_total} images")
     print(f"  Output: {os.path.abspath(args.output)}/")
-    print(f"\n  Next step: upload folders to Claude for scoring!")
+    print(f"\n  Next step: score collections using the CLIP pipeline!")
 
 
 if __name__ == "__main__":
