@@ -1,0 +1,23 @@
+# Images (too large for git, stored in Google Drive)
+*.jpg
+*.jpeg
+*.png
+*.zip
+ds3000-runway-images/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Vogue scraper (clone separately)
+Vogue-Runway-Scraper/
