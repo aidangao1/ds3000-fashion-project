@@ -26,14 +26,12 @@ ds3000-fashion-project/
 ├── README.md
 ├── .gitignore
 ├── data/
+│   ├── Manual vs Clip Scoring.pdf     # validation analysis
 │   ├── clip_scores.csv                # CLIP-generated data matrix (primary)
-│   ├── manual_scores.csv              # hand-scored validation set
-│   ├── scoring_rubric.md              # manual attribute definitions
-│   └── manual_vs_clip_comparison.md   # validation analysis
+│   └──  manual_scores.csv              # hand-scored validation set              
 ├── scripts/
 │   ├── clip_feature_extractor.py      # OpenCLIP pipeline
-│   ├── ds3000_batch_download.py       # Vogue Runway image scraper
-│   └── clean_vogue_folder.py          # image deduplication
+│   └── ds3000_batch_download.py       # Vogue Runway image scraper
 ├── outputs/
 │   ├── figures/                       # generated plots
 │   └── report/                        # final report
