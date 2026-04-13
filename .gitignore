@@ -1,15 +1,22 @@
-# Images (too large for git, stored in Google Drive)
-*.jpg
-*.jpeg
-*.png
-*.zip
+# Raw runway images (too large for git, stored in Google Drive)
 ds3000-runway-images/
+*.zip
+
+# Generated outputs (regenerate with scripts)
+outputs/
+
+# Allow site thumbnails (small, ~28KB each)
+# site/public/thumbs/ is tracked
 
 # Python
 __pycache__/
 *.pyc
 .venv/
 venv/
+bin/
+lib/
+lib64
+pyvenv.cfg
 
 # OS
 .DS_Store
@@ -18,6 +25,11 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Next.js
+site/node_modules/
+site/.next/
+site/out/
 
 # Vogue scraper (clone separately)
 Vogue-Runway-Scraper/

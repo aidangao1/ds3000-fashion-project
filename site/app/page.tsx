@@ -5,6 +5,7 @@ import ScatterPlot from "./components/ScatterPlot";
 import ScreePlot from "./components/ScreePlot";
 import DistanceHeatmap from "./components/DistanceHeatmap";
 import Timeline from "./components/Timeline";
+import CL from "./components/CollectionLink";
 
 function loadData(): DataSet {
   const raw = readFileSync(join(process.cwd(), "public", "data.json"), "utf-8");
@@ -46,11 +47,11 @@ export default function Home() {
         <div className="container">
           <h2>DS3000 Final Project</h2>
           <h1>Latent Aesthetics in<br />Japanese Menswear</h1>
-          <p className="subtitle">Uncovering shared aesthetic DNA through SVD</p>
+          <p className="subtitle">SVD on CLIP-scored runway data</p>
           <p className="large-text" style={{ marginTop: 24 }}>
-            We applied Singular Value Decomposition to {totalLooks.toLocaleString()} runway looks
-            across six Japanese menswear designers, reducing 31 CLIP-scored attributes to a handful
-            of latent aesthetic dimensions.
+            We scored {totalLooks.toLocaleString()} runway images against 31 text prompts using OpenCLIP,
+            then ran SVD on the resulting matrix to find the independent aesthetic axes that separate
+            six Japanese menswear designers.
           </p>
         </div>
       </header>
@@ -82,7 +83,7 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>The Designers</h2>
-            <h3>Six voices, two decades</h3>
+            <h3>Six designers, two decades of data</h3>
           </div>
           <div className="designers">
             {[
@@ -112,11 +113,10 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Dimensionality Reduction</h2>
-            <h3>31 attributes collapse into 5 dimensions</h3>
+            <h3>31 attributes, 5 independent dimensions</h3>
             <p className="large-text">
-              The scree plot shows a clear elbow after the third component.
-              Five components capture {(cumVar * 100).toFixed(0)}% of the total variance &mdash;
-              a strong reduction from the original 31 attributes.
+              Five components capture {(cumVar * 100).toFixed(0)}% of total variance.
+              The scree plot shows a clear elbow at three, with diminishing returns after five.
             </p>
           </div>
           <ScreePlot singularValues={data.singularValues} varianceExplained={data.varianceExplained} />
@@ -145,14 +145,14 @@ export default function Home() {
       </section>
 
       {/* Interactive Biplot */}
-      <section>
+      <section id="biplot">
         <div className="container">
           <div className="section-header">
             <h2>Principal Component Space</h2>
-            <h3>Click any point to inspect</h3>
+            <h3>129 collections in reduced space</h3>
             <p className="large-text">
-              Each dot is one collection. Select any point to see its PC scores and all 31 CLIP
-              attribute values. Use the axis selectors to explore different component pairs.
+              Each dot is one collection. Click to see its PC scores and all 31 attribute values.
+              Arrows show attribute loadings.
             </p>
           </div>
         </div>
@@ -164,14 +164,60 @@ export default function Home() {
           />
         </div>
         <div className="container">
+          <div className="section-header" style={{ marginTop: 48, marginBottom: 24 }}>
+            <h2>Component Extremes</h2>
+            <h3>What each PC measures and who sits at each pole</h3>
+          </div>
+
           <div className="insights">
             <div className="insight">
-              <div className="insight-title">Most Extreme on PC1</div>
-              <p>CDG Homme Plus SS22 scored &minus;8.11 (most deconstructed), while Sacai FW16 scored +8.03 (cleanest). A 16-point swing on the construction axis.</p>
+              <div className="insight-title">PC1: Construction (29.7%)</div>
+              <p>
+                Raw, textured, distressed on one end. Clean and polished on the other.
+                Top loadings: distressed, raw edges, fabric cotton, abstract print.{" "}
+                <CL d="cdg" s="spring-2022-menswear">CDG SS22</CL> (&minus;8.11) scores the most deconstructed.{" "}
+                <CL d="sacai" s="fall-2016-menswear">Sacai FW16</CL> (+8.03) scores the cleanest.
+              </p>
+            </div>
+            <div className="insight">
+              <div className="insight-title">PC2: Formality (18.8%)</div>
+              <p>
+                Dark, structured, tailored vs. bright, casual, patterned.
+                Top loadings: color black, structured silhouette, tailored formal, draped.{" "}
+                <CL d="yohji" s="fall-2021-menswear">Yohji FW21</CL> (+5.29) leads the formal end.{" "}
+                <CL d="undercover" s="spring-2017-menswear">Undercover SS17</CL> (&minus;4.62) leads the casual end.
+              </p>
+            </div>
+            <div className="insight">
+              <div className="insight-title">PC3: Pattern (14.1%)</div>
+              <p>
+                Printed and patterned vs. plain and earth-toned.
+                Top loadings: floral print, no print (negative), abstract print.{" "}
+                <CL d="cdg" s="fall-2020-menswear">CDG FW20</CL> (+6.04) is the most print-heavy.{" "}
+                <CL d="undercover" s="pre-fall-2026-menswear">Undercover PF26</CL> (&minus;5.21) is the plainest.
+              </p>
+            </div>
+            <div className="insight">
+              <div className="insight-title">PC4: Weight (8.1%)</div>
+              <p>
+                Heavy, dark fabrics vs. lightweight, bright ones.
+                Top loadings: heavy fabric, gothic dark, punk, leather.{" "}
+                <CL d="yohji" s="fall-2021-menswear">Yohji FW21</CL> (+4.31) scores heaviest.{" "}
+                <CL d="sacai" s="spring-2018-menswear">Sacai SS18</CL> (&minus;2.97) scores lightest.
+              </p>
+            </div>
+            <div className="insight">
+              <div className="insight-title">PC5: Silhouette (7.2%)</div>
+              <p>
+                Oversized, military, layered vs. slim, tailored, fitted.
+                Top loadings: slim (negative), military, oversized.{" "}
+                <CL d="yohji" s="fall-2025-menswear">Yohji FW25</CL> (+3.59) is the most oversized.{" "}
+                <CL d="undercover" s="fall-2015-menswear">Undercover FW15</CL> (&minus;3.91) is the slimmest.
+              </p>
             </div>
             <div className="insight">
               <div className="insight-title">CDG vs. Undercover</div>
-              <p>Both score negative on PC1 (deconstructed), but split on PC2: CDG tends formal and dark, Undercover tends casual and graphic. Shared DNA is in construction, not mood.</p>
+              <p>Both negative on PC1, but they split on PC2. CDG trends formal and dark, Undercover trends casual and graphic. Similar construction, different mood.</p>
             </div>
           </div>
         </div>
@@ -182,10 +228,10 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Designer Proximity</h2>
-            <h3>Who sounds like whom</h3>
+            <h3>Cosine distance between centroids</h3>
             <p className="large-text">
-              Cosine distance between designer centroids in the full PC space.
-              Low values mean shared visual vocabulary.
+              Each designer&rsquo;s centroid in PC space represents their average aesthetic.
+              Cosine distance measures how different those averages are.
             </p>
           </div>
         </div>
@@ -199,11 +245,11 @@ export default function Home() {
           <div className="insights">
             <div className="insight">
               <div className="insight-title">Closest Pair</div>
-              <p>Undercover and visvim (0.353) share the most aesthetic ground &mdash; earthy tones, casual silhouettes, textural rawness. A connection invisible to trend journalism that emerges clearly from the decomposition.</p>
+              <p>Undercover and visvim (0.353). Both score toward earthy, casual, textured. This relationship only becomes visible through the decomposition.</p>
             </div>
             <div className="insight">
               <div className="insight-title">Most Distant Pair</div>
-              <p>Yohji Yamamoto and visvim (1.645) are maximally apart. Black draping and structure vs. earth-toned craft casualwear. Opposite poles of Japanese menswear.</p>
+              <p>Yohji Yamamoto and visvim (1.645). Opposite ends of both PC1 and PC2: black and structural vs. earthy and casual.</p>
             </div>
           </div>
         </div>
@@ -214,10 +260,10 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Attribute Correlations</h2>
-            <h3>31 prompts, not 31 dimensions</h3>
+            <h3>Correlated attributes</h3>
             <p className="large-text">
-              Many CLIP attributes are highly correlated &mdash; different measurements of the
-              same latent thing. This is why SVD works: the true dimensionality is far lower than 31.
+              Many attributes move together. &ldquo;Distressed&rdquo; and &ldquo;raw edges&rdquo; correlate at 0.77,
+              meaning they measure the same underlying thing. SVD extracts those shared factors.
             </p>
           </div>
 
@@ -249,10 +295,10 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Stylistic Evolution</h2>
-            <h3>How aesthetics drift over time</h3>
+            <h3>PC scores over time</h3>
             <p className="large-text">
-              Track each designer&rsquo;s PC scores across seasons. Hover any point for details.
-              Switch components to see different aesthetic axes.
+              Each designer&rsquo;s position in PC space changes season to season.
+              Variance across seasons measures how much a designer reinvents.
             </p>
           </div>
         </div>
@@ -263,11 +309,11 @@ export default function Home() {
           <div className="insights">
             <div className="insight">
               <div className="insight-title">Most Varied</div>
-              <p>CDG Homme Plus has the highest stylistic variance &mdash; Kawakubo reinvents more aggressively than any other designer in the dataset.</p>
+              <p>CDG Homme Plus has the highest variance across all five components. No two seasons occupy the same region.</p>
             </div>
             <div className="insight">
               <div className="insight-title">Yohji&rsquo;s Range</div>
-              <p>Yamamoto spans nearly the full width of PC1 &mdash; from &minus;7.62 (SS22) to +6.42 (FW08). The data reveals significant variation despite his reputation for consistency.</p>
+              <p>Yamamoto spans PC1 from &minus;7.62 (<CL d="yohji" s="spring-2022-menswear">SS22</CL>) to +6.42 (<CL d="yohji" s="fall-2008-menswear">FW08</CL>). That is a wider range than you would expect for a designer known for consistency.</p>
             </div>
           </div>
         </div>
@@ -278,16 +324,15 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Methodology</h2>
-            <h3>From pixels to principal components</h3>
+            <h3>Pipeline</h3>
           </div>
           <p className="large-text">
-            Runway images were scored against 31 text prompts using OpenCLIP (ViT-B-32),
-            producing cosine similarity values between 0 and 1. Scores were averaged per collection,
-            standardized, and decomposed via SVD. A manually scored validation set of 11 collections
-            showed approximately 80% agreement with the CLIP-generated scores.
+            OpenCLIP (ViT-B-32) scores each runway image against 31 text prompts as cosine similarity.
+            Scores are averaged per collection, standardized, then decomposed as X&nbsp;=&nbsp;USV&#8868;.
+            A hand-scored validation set of 11 collections showed ~80% agreement with the automated scores.
           </p>
           <p style={{ marginTop: 16, fontSize: 14, color: "var(--light)" }}>
-            Images sourced from Vogue Runway. All collections are menswear only.
+            Images from Vogue Runway. Menswear only.
           </p>
         </div>
       </section>

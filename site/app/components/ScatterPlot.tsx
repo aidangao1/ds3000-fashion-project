@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import type { Collection, Loading } from "../types";
 import { DESIGNER_COLORS } from "../colors";
+import Gallery from "./Gallery";
 
 interface Props {
   collections: Collection[];
@@ -15,6 +16,28 @@ const H = 560;
 const PAD = { top: 24, right: 24, bottom: 48, left: 56 };
 const INNER_W = W - PAD.left - PAD.right;
 const INNER_H = H - PAD.top - PAD.bottom;
+
+const DESIGNER_SLUGS: Record<string, string> = {
+  "CDG Homme Plus": "comme-des-garcons-homme-plus",
+  "Yohji Yamamoto": "yohji-yamamoto",
+  "Undercover": "undercover",
+  "Sacai": "sacai",
+  "Number (N)ine": "number-n-ine",
+  "visvim": "visvim",
+};
+
+const VOGUE_SLUGS: Record<string, string> = {};
+
+function thumbPath(designer: string, season: string): string {
+  const slug = DESIGNER_SLUGS[designer] || designer;
+  return `/thumbs/${slug}/${season}.jpg`;
+}
+
+function vogueUrl(designer: string, season: string): string {
+  const slug = DESIGNER_SLUGS[designer] || designer;
+  const vSlug = VOGUE_SLUGS[slug] || slug;
+  return `https://www.vogue.com/fashion-shows/${season}/${vSlug}/slideshow/collection`;
+}
 
 function formatSeason(s: string): string {
   return s
@@ -30,6 +53,37 @@ export default function ScatterPlot({ collections, loadings, varianceExplained }
   const [pcY, setPcY] = useState(1);
   const [selected, setSelected] = useState<Collection | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [galleryCollection, setGalleryCollection] = useState<Collection | null>(null);
+
+  // Listen for hash-based gallery links: #gallery/{designer-slug}/{season}
+  const handleHash = useCallback(() => {
+    const hash = window.location.hash;
+    const match = hash.match(/^#gallery\/([^/]+)\/(.+)$/);
+    if (!match) return;
+    const [, slug, season] = match;
+    const labels: Record<string, string> = {
+      "comme-des-garcons-homme-plus": "CDG Homme Plus",
+      "yohji-yamamoto": "Yohji Yamamoto",
+      "undercover": "Undercover",
+      "sacai": "Sacai",
+      "number-n-ine": "Number (N)ine",
+      "visvim": "visvim",
+    };
+    const label = labels[slug];
+    if (!label) return;
+    const coll = collections.find((c) => c.designer === label && c.season === season);
+    if (coll) {
+      setGalleryCollection(coll);
+      setSelected(coll);
+      window.history.replaceState(null, "", " "); // clear hash
+    }
+  }, [collections]);
+
+  useEffect(() => {
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [handleHash]);
 
   const { xMin, xMax, yMin, yMax, scaleX, scaleY } = useMemo(() => {
     const xs = collections.map((c) => c.pc[pcX]);
@@ -191,6 +245,40 @@ export default function ScatterPlot({ collections, loadings, varianceExplained }
               <button className="detail-close" onClick={() => setSelected(null)}>&times;</button>
             </div>
 
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={thumbPath(selected.designer, selected.season)}
+              alt={`${selected.designer} ${formatSeason(selected.season)}`}
+              style={{
+                width: "100%",
+                height: 200,
+                objectFit: "cover",
+                display: "block",
+                background: "var(--rule)",
+              }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center" }}>
+              <button
+                onClick={() => setGalleryCollection(selected)}
+                style={{
+                  background: "var(--black)", color: "white", border: "none",
+                  padding: "6px 14px", fontSize: 12, fontFamily: "inherit",
+                  fontWeight: 700, letterSpacing: "0.5px", cursor: "pointer",
+                }}
+              >
+                View All Looks
+              </button>
+              <a
+                href={vogueUrl(selected.designer, selected.season)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: "var(--light)" }}
+              >
+                Vogue Runway &rarr;
+              </a>
+            </div>
+
             <div className="detail-section">
               <div className="detail-section-title">PC Scores</div>
               {selected.pc.slice(0, 5).map((v, i) => (
@@ -227,6 +315,14 @@ export default function ScatterPlot({ collections, loadings, varianceExplained }
           </div>
         ))}
       </div>
+
+      {galleryCollection && (
+        <Gallery
+          designer={galleryCollection.designer}
+          season={galleryCollection.season}
+          onClose={() => setGalleryCollection(null)}
+        />
+      )}
     </div>
   );
 }
